@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Twitter Escolar</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#e6ecf0;
+}
+
+#loginTela{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#1da1f2;
+}
+
+.login-box{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    width:320px;
+}
+
+.login-box h2{
+    margin-bottom:15px;
+}
+
+.login-box input{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+.login-box button{
+    width:100%;
+    padding:10px;
+    background:#1da1f2;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+#app{
+    display:none;
+}
+
+header{
+    background:#1da1f2;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.container{
+    max-width:900px;
+    margin:20px auto;
+}
+
+.post-box{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+textarea{
+    width:100%;
+    height:100px;
+    padding:10px;
+    resize:none;
+}
+
+button.publicar{
+    margin-top:10px;
+    padding:10px 20px;
+    background:#1da1f2;
+    color:white;
+    border:none;
+    border-radius:20px;
+}
+
+.post{
+    background:white;
+    margin-top:10px;
+    padding:15px;
+    border-radius:10px;
+}
+
+.perfil{
+    padding:10px;
+    background:white;
+    margin-bottom:15px;
+    border-radius:10px;
+}
+
+.alerta{
+    color:red;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginTela">
+    <div class="login-box">
+        <h2>Entrar</h2>
+
+        <input
+            type="text"
+            id="usuario"
+            placeholder="Digite seu usuário">
+
+        <button onclick="entrar()">
+            Entrar
+        </button>
+    </div>
+</div>
+
+<!-- REDE SOCIAL -->
+<div id="app">
+
+<header>
+🐦 Mini Twitter Escolar
+</header>
+
+<div class="container">
+
+<div class="perfil">
+    <strong id="nomeUsuario"></strong>
+    <button onclick="sair()" style="float:right;">
+        Sair
+    </button>
+</div>
+
+<div class="post-box">
+
+<textarea
+id="mensagem"
+maxlength="280"
+placeholder="O que está acontecendo?">
+</textarea>
+
+<div>
+<span id="contador">0 / 280</span>
+</div>
+
+<button class="publicar"
+onclick="publicar()">
+Publicar
+</button>
+
+<div id="alerta" class="alerta"></div>
+
+</div>
+
+<div id="feed"></div>
+
+</div>
+</div>
+
+<script>
+
+const palavrasOfensivas = [
+    "xingamento",
+    "ofensa",
+    "palavra1",
+    "palavra2"
+];
+
+window.onload = function(){
+
+    let usuario =
+        localStorage.getItem("usuario");
+
+    if(usuario){
+        mostrarRede(usuario);
+    }
+
+};
+
+function entrar(){
+
+    let usuario =
+        document.getElementById("usuario")
+        .value.trim();
+
+    if(usuario === ""){
+        alert("Digite um usuário.");
+        return;
+    }
+
+    localStorage.setItem(
+        "usuario",
+        usuario
+    );
+
+    mostrarRede(usuario);
+}
+
+function mostrarRede(usuario){
+
+    document.getElementById("loginTela")
+        .style.display = "none";
+
+    document.getElementById("app")
+        .style.display = "block";
+
+    document.getElementById("nomeUsuario")
+        .textContent = "@" + usuario;
+}
+
+function sair(){
+
+    localStorage.removeItem("usuario");
+
+    location.reload();
+}
+
+const mensagem =
+    document.getElementById("mensagem");
+
+const contador =
+    document.getElementById("contador");
+
+mensagem.addEventListener("input", function(){
+
+    contador.textContent =
+        mensagem.value.length + " / 280";
+});
+
+function publicar(){
+
+    let texto =
+        mensagem.value.trim();
+
+    if(texto === ""){
+        return;
+    }
+
+    let ofensivas = 0;
+
+    palavrasOfensivas.forEach(p => {
+
+        if(texto.toLowerCase().includes(
+            p.toLowerCase()
+        )){
+            ofensivas++;
+        }
+    });
+
+    if(ofensivas > 0){
+
+        document.getElementById("alerta")
+        .innerHTML =
+        "⚠ Texto bloqueado. Foram encontradas "
+        + ofensivas +
+        " palavra(s) inadequada(s).";
+
+        return;
+    }
+
+    document.getElementById("alerta")
+        .innerHTML = "";
+
+    let usuario =
+        localStorage.getItem("usuario");
+
+    let post =
+        document.createElement("div");
+
+    post.className = "post";
+
+    post.innerHTML = `
+        <strong>@${usuario}</strong>
+        <p>${texto}</p>
+        <small>${new Date().toLocaleString()}</small>
+    `;
+
+    document.getElementById("feed")
+        .prepend(post);
+
+    mensagem.value = "";
+
+    contador.textContent =
+        "0 / 280";
+}
+
+</script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rede Social Escolar</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#dde7f0;
+}
+
+.topbar{
+    background:#2b8fd6;
+    color:white;
+    height:50px;
+    display:flex;
+    align-items:center;
+    padding:0 20px;
+    box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+
+.logo{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.login{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.login-box{
+    background:white;
+    padding:25px;
+    width:320px;
+    border-radius:8px;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+
+.login-box input,
+.login-box button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+}
+
+.container{
+    width:1100px;
+    max-width:95%;
+    margin:20px auto;
+    display:grid;
+    grid-template-columns:250px 1fr 250px;
+    gap:15px;
+}
+
+.card{
+    background:white;
+    border:1px solid #cfd9e2;
+    border-radius:6px;
+    padding:15px;
+}
+
+.profile{
+    text-align:center;
+}
+
+.avatar{
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    background:#2b8fd6;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:30px;
+    margin:auto;
+}
+
+textarea{
+    width:100%;
+    height:90px;
+    resize:none;
+    padding:10px;
+}
+
+.btn{
+    background:#2b8fd6;
+    color:white;
+    border:none;
+    padding:8px 16px;
+    cursor:pointer;
+    border-radius:4px;
+}
+
+.btn:hover{
+    opacity:.9;
+}
+
+.post{
+    border-bottom:1px solid #ddd;
+    padding:10px 0;
+}
+
+.post:last-child{
+    border-bottom:none;
+}
+
+.meta{
+    color:#666;
+    font-size:12px;
+}
+
+.like{
+    cursor:pointer;
+    color:#2b8fd6;
+    margin-top:5px;
+}
+
+#app{
+    display:none;
+}
+
+.trend{
+    margin:8px 0;
+    color:#2b8fd6;
+}
+</style>
+</head>
+<body>
+
+<div id="login" class="login">
+
+<div class="login-box">
+<h2>Entrar</h2>
+
+<input
+id="usuario"
+type="text"
+placeholder="Nome de usuário">
+
+<button onclick="entrar()">
+Entrar
+</button>
+
+</div>
+
+</div>
+
+<div id="app">
+
+<div class="topbar">
+<div class="logo">Rede Social Escolar</div>
+</div>
+
+<div class="container">
+
+<div class="card profile">
+
+<div class="avatar" id="avatar">
+U
+</div>
+
+<h3 id="nomePerfil">
+Usuário
+</h3>
+
+<p>@<span id="userTag"></span></p>
+
+<hr>
+
+<button class="btn" onclick="sair()">
+Sair
+</button>
+
+</div>
+
+<div>
+
+<div class="card">
+
+<h3>O que está acontecendo?</h3>
+
+<textarea
+id="texto"
+maxlength="280"></textarea>
+
+<p>
+<span id="contador">
+0
+</span>/280
+</p>
+
+<button class="btn"
+onclick="publicar()">
+Publicar
+</button>
+
+</div>
+
+<div
+id="feed"
+class="card"
+style="margin-top:15px;">
+
+<h3>Timeline</h3>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Tendências</h3>
+
+<div class="trend">#Escola</div>
+<div class="trend">#Projeto</div>
+<div class="trend">#Programação</div>
+<div class="trend">#HTML</div>
+<div class="trend">#JavaScript</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const texto =
+document.getElementById("texto");
+
+texto?.addEventListener(
+"input",
+function(){
+document.getElementById(
+"contador"
+).textContent =
+texto.value.length;
+}
+);
+
+function entrar(){
+
+const usuario =
+document.getElementById(
+"usuario"
+).value.trim();
+
+if(!usuario){
+alert("Digite um usuário.");
+return;
+}
+
+localStorage.setItem(
+"usuario",
+usuario
+);
+
+carregar();
+}
+
+function carregar(){
+
+const usuario =
+localStorage.getItem(
+"usuario"
+);
+
+if(!usuario) return;
+
+document.getElementById(
+"login"
+).style.display="none";
+
+document.getElementById(
+"app"
+).style.display="block";
+
+document.getElementById(
+"nomePerfil"
+).textContent=
+usuario;
+
+document.getElementById(
+"userTag"
+).textContent=
+usuario.toLowerCase();
+
+document.getElementById(
+"avatar"
+).textContent=
+usuario.charAt(0)
+.toUpperCase();
+}
+
+function sair(){
+
+localStorage.removeItem(
+"usuario"
+);
+
+location.reload();
+}
+
+function publicar(){
+
+const conteudo =
+texto.value.trim();
+
+if(!conteudo){
+return;
+}
+
+const usuario =
+localStorage.getItem(
+"usuario"
+);
+
+const post =
+document.createElement(
+"div"
+);
+
+post.className="post";
+
+const data =
+new Date()
+.toLocaleString();
+
+post.innerHTML=`
+<strong>${usuario}</strong>
+<div class="meta">${data}</div>
+<p>${conteudo}</p>
+<div class="like"
+onclick="curtir(this)">
+❤️ Curtir (0)
+</div>
+`;
+
+document.getElementById(
+"feed"
+).appendChild(post);
+
+texto.value="";
+
+document.getElementById(
+"contador"
+).textContent="0";
+}
+
+function curtir(el){
+
+let textoAtual =
+el.textContent;
+
+let numero =
+parseInt(
+textoAtual.match(/\d+/)[0]
+);
+
+numero++;
+
+el.textContent =
+"❤️ Curtir ("+
+numero+
+")";
+}
+
+window.onload=carregar;
+
+</script>
+
+</body>
+</html>
